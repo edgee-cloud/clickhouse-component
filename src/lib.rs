@@ -214,7 +214,10 @@ mod tests {
             true,
         );
         let settings = vec![
-            ("endpoint".to_string(), "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string()),
+            (
+                "endpoint".to_string(),
+                "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string(),
+            ),
             ("table".to_string(), "edgee".to_string()),
             ("username".to_string(), "default".to_string()),
             ("password".to_string(), "12345".to_string()),
@@ -228,5 +231,4 @@ mod tests {
         assert_eq!(edgee_request.url.contains("clickhouse.cloud"), true);
         assert_eq!(edgee_request.url.contains("?query="), true);
     }
-
 }
