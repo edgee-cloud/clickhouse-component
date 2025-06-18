@@ -213,14 +213,20 @@ mod tests {
             "fr".to_string(),
             true,
         );
-        let settings = vec![("your-credentials".to_string(), "abc".to_string())];
+        let settings = vec![
+            ("endpoint".to_string(), "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string()),
+            ("table".to_string(), "edgee".to_string()),
+            ("username".to_string(), "default".to_string()),
+            ("password".to_string(), "12345".to_string()),
+        ];
         let result = Component::page(event, settings);
 
         assert_eq!(result.is_err(), false);
         let edgee_request = result.unwrap();
         assert_eq!(edgee_request.method, HttpMethod::Post);
-        assert_eq!(edgee_request.body.is_empty(), true);
-        assert_eq!(edgee_request.url.starts_with("https://example.com/"), true);
-        // add more checks (headers, querystring, etc.)
+        assert_eq!(edgee_request.body.is_empty(), false);
+        assert_eq!(edgee_request.url.contains("clickhouse.cloud"), true);
+        assert_eq!(edgee_request.url.contains("?query="), true);
     }
+
 }
