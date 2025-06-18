@@ -1,8 +1,8 @@
 use crate::exports::edgee::components::data_collection::{Dict, EdgeeRequest, Event, HttpMethod};
-use exports::edgee::components::data_collection::Guest;
-use std::collections::HashMap;
 use anyhow::Context;
 use base64::prelude::*;
+use exports::edgee::components::data_collection::Guest;
+use std::collections::HashMap;
 
 wit_bindgen::generate!({
     world: "data-collection",
@@ -15,7 +15,6 @@ export!(Component);
 struct Component;
 
 impl Guest for Component {
-
     fn page(edgee_event: Event, settings: Dict) -> Result<EdgeeRequest, String> {
         send_to_clickhouse(edgee_event, settings)
     }
@@ -27,7 +26,6 @@ impl Guest for Component {
     fn user(edgee_event: Event, settings: Dict) -> Result<EdgeeRequest, String> {
         send_to_clickhouse(edgee_event, settings)
     }
-
 }
 
 fn send_to_clickhouse(edgee_event: Event, settings_dict: Dict) -> Result<EdgeeRequest, String> {
@@ -37,7 +35,10 @@ fn send_to_clickhouse(edgee_event: Event, settings_dict: Dict) -> Result<EdgeeRe
     let body = serde_json::to_string(&edgee_event).unwrap_or_default();
 
     // insert json objects into ClickHouse table using the JSONEachRow format
-    let url = format!("{}?query=INSERT INTO {} FORMAT JSONEachRow", settings.endpoint, settings.table);
+    let url = format!(
+        "{}?query=INSERT INTO {} FORMAT JSONEachRow",
+        settings.endpoint, settings.table
+    );
 
     let authorization_basic = format!(
         "Basic {}",
@@ -47,7 +48,7 @@ fn send_to_clickhouse(edgee_event: Event, settings_dict: Dict) -> Result<EdgeeRe
     Ok(EdgeeRequest {
         method: HttpMethod::Post,
         url,
-        headers:  vec![
+        headers: vec![
             ("Content-Type".to_string(), "application/json".to_string()),
             ("Authorization".to_string(), authorization_basic.to_string()),
         ],
@@ -90,7 +91,12 @@ impl Settings {
             .context("Missing password")?
             .to_string();
 
-        Ok(Self { endpoint, table, username, password })
+        Ok(Self {
+            endpoint,
+            table,
+            username,
+            password,
+        })
     }
 }
 
