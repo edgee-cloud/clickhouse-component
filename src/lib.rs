@@ -132,7 +132,7 @@ mod tests {
                 user_agent_full_version_list: "abc".to_string(),
                 user_agent_version_list: "abc".to_string(),
                 user_agent_mobile: "mobile".to_string(),
-                user_agent_model: "don't know".to_string(),
+                user_agent_model: "unknown".to_string(),
                 os_name: "MacOS".to_string(),
                 os_version: "latest".to_string(),
                 screen_width: 1024,
