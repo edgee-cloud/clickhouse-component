@@ -36,8 +36,8 @@ fn send_to_clickhouse(edgee_event: Event, settings_dict: Dict) -> Result<EdgeeRe
 
     // insert json objects into ClickHouse table using the JSONEachRow format
     let url = format!(
-        "{}?query=INSERT INTO {} FORMAT JSONEachRow",
-        settings.endpoint, settings.table
+        "{}?query=INSERT INTO {}.{} FORMAT JSONEachRow",
+        settings.endpoint, settings.database, settings.table
     );
 
     let authorization_basic = format!(
@@ -57,8 +57,12 @@ fn send_to_clickhouse(edgee_event: Event, settings_dict: Dict) -> Result<EdgeeRe
     })
 }
 
+const DEFAULT_DATABASE: &str = "default";
+const DEFAULT_USERNAME: &str = "default";
+
 pub struct Settings {
     pub endpoint: String,
+    pub database: String,
     pub table: String,
     pub username: String,
     pub password: String,
@@ -76,6 +80,12 @@ impl Settings {
             .context("Missing endpoint")?
             .to_string();
 
+        let database = settings_map
+            .get("database")
+            .cloned()
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| DEFAULT_DATABASE.to_owned());
+
         let table = settings_map
             .get("table")
             .context("Missing table")?
@@ -83,8 +93,9 @@ impl Settings {
 
         let username = settings_map
             .get("username")
-            .context("Missing username")?
-            .to_string();
+            .cloned()
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| DEFAULT_USERNAME.to_owned());
 
         let password = settings_map
             .get("password")
@@ -93,6 +104,7 @@ impl Settings {
 
         Ok(Self {
             endpoint,
+            database,
             table,
             username,
             password,
@@ -205,6 +217,43 @@ mod tests {
         }
     }
 
+    fn sample_track_event(
+        event_name: String,
+        consent: Option<Consent>,
+        edgee_id: String,
+        locale: String,
+        session_start: bool,
+    ) -> Event {
+        return Event {
+            uuid: Uuid::new_v4().to_string(),
+            timestamp: 123,
+            timestamp_millis: 123,
+            timestamp_micros: 123,
+            event_type: EventType::Track,
+            data: Data::Track(sample_track_data(event_name)),
+            context: sample_context(edgee_id, locale, session_start),
+            consent: consent,
+        };
+    }
+
+    fn sample_user_event(
+        consent: Option<Consent>,
+        edgee_id: String,
+        locale: String,
+        session_start: bool,
+    ) -> Event {
+        return Event {
+            uuid: Uuid::new_v4().to_string(),
+            timestamp: 123,
+            timestamp_millis: 123,
+            timestamp_micros: 123,
+            event_type: EventType::User,
+            data: Data::User(sample_user_data(edgee_id.clone())),
+            context: sample_context(edgee_id, locale, session_start),
+            consent: consent,
+        };
+    }
+
     #[test]
     fn page_works_fine() {
         let event = sample_page_event(
@@ -218,8 +267,9 @@ mod tests {
                 "endpoint".to_string(),
                 "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string(),
             ),
+            ("database".to_string(), "test".to_string()),
             ("table".to_string(), "edgee".to_string()),
-            ("username".to_string(), "default".to_string()),
+            ("username".to_string(), "user".to_string()),
             ("password".to_string(), "12345".to_string()),
         ];
         let result = Component::page(event, settings);
@@ -228,7 +278,99 @@ mod tests {
         let edgee_request = result.unwrap();
         assert_eq!(edgee_request.method, HttpMethod::Post);
         assert_eq!(edgee_request.body.is_empty(), false);
-        assert_eq!(edgee_request.url.contains("clickhouse.cloud"), true);
-        assert_eq!(edgee_request.url.contains("?query="), true);
+        assert_eq!(edgee_request.url.contains("clickhouse.cloud"), true); // hostname
+        assert_eq!(edgee_request.url.contains("test.edgee"), true); // database.table
+        assert_eq!(edgee_request.url.contains("?query="), true); // query param
     }
+
+    #[test]
+    fn test_default_database() {
+        let event = sample_page_event(
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![
+            (
+                "endpoint".to_string(),
+                "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string(),
+            ),
+            ("table".to_string(), "edgee".to_string()),
+            ("password".to_string(), "12345".to_string()),
+        ];
+        let result = Component::page(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.url.contains("default.edgee"), true); // database.table
+    }
+
+    #[test]
+    fn page_authorization_header_with_username() {
+        let event = sample_page_event(
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![
+            (
+                "endpoint".to_string(),
+                "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string(),
+            ),
+            ("table".to_string(), "edgee".to_string()),
+            ("username".to_string(), "user".to_string()),
+            ("password".to_string(), "12345".to_string()),
+        ];
+        let result = Component::page(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        
+        let auth_header = edgee_request
+            .headers
+            .iter()
+            .find(|(k, _)| k == "Authorization")
+            .map(|(_, v)| v);
+
+        assert!(auth_header.is_some());
+        assert!(auth_header.unwrap().starts_with("Basic "));
+        let expected_auth = BASE64_STANDARD.encode(format!("{}:{}", "user", "12345"));
+        assert_eq!(auth_header.unwrap(), &format!("Basic {}", expected_auth));
+    }
+
+    #[test]
+    fn page_authorization_header_without_username() {
+        let event = sample_page_event(
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![
+            (
+                "endpoint".to_string(),
+                "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string(),
+            ),
+            ("table".to_string(), "edgee".to_string()),
+            ("password".to_string(), "12345".to_string()),
+        ];
+        let result = Component::page(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        
+        let auth_header = edgee_request
+            .headers
+            .iter()
+            .find(|(k, _)| k == "Authorization")
+            .map(|(_, v)| v);
+
+        assert!(auth_header.is_some());
+        assert!(auth_header.unwrap().starts_with("Basic "));
+        let expected_auth = BASE64_STANDARD.encode(format!("{}:{}", "default", "12345"));
+        assert_eq!(auth_header.unwrap(), &format!("Basic {}", expected_auth));
+    }
+
 }

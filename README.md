@@ -31,31 +31,92 @@ id = "clickhouse"
 file = "/var/edgee/components/clickhouse.wasm"
 settings.endpoint = "https://UNIQUE_ID.clickhouse.cloud:8443"
 settings.table = "edgee"
-settings.username = "default"
 settings.password = "*******"
 ```
 
 
 ## Event Handling
 
-First of all, create a new table with this schema:
+First of all, create a new table with the following schema:
 
-```sql
-SET enable_json_type = 1;
-CREATE TABLE edgee (
-    uuid UUID,
-    event_type String,
-    timestamp UInt64,
-    timestamp_millis UInt64,
-    timestamp_micros UInt64,
-    consent Nullable(String),
-    context JSON,
-    data JSON
-) ENGINE = MergeTree
-ORDER BY (timestamp_millis);
-```
+<details>
+  <summary>Native JSON type (>=25.3)</summary>
 
-Please note that you can configure the table name in the component settings.
+  ```sql
+  CREATE TABLE edgee (
+      uuid UUID,
+      event_type String,
+      timestamp UInt64,
+      timestamp_millis UInt64,
+      timestamp_micros UInt64,
+      consent Nullable(String),
+      context JSON,
+      data JSON
+  ) ENGINE = MergeTree
+  ORDER BY (timestamp_millis);
+  ```
+
+</details>
+
+<details>
+  <summary>Experimental JSON type (<25.3)</summary>
+
+  ```sql
+  SET enable_json_type = 1;
+  CREATE TABLE edgee (
+      uuid UUID,
+      event_type String,
+      timestamp UInt64,
+      timestamp_millis UInt64,
+      timestamp_micros UInt64,
+      consent Nullable(String),
+      context JSON,
+      data JSON
+  ) ENGINE = MergeTree
+  ORDER BY (timestamp_millis);
+  ```
+
+</details>
+
+<details>
+  <summary>Experimental Object('json') type (<25.3)</summary>
+
+  ```sql
+  Set allow_experimental_object_type = 1;
+  CREATE TABLE edgee (
+      uuid UUID,
+      event_type String,
+      timestamp UInt64,
+      timestamp_millis UInt64,
+      timestamp_micros UInt64,
+      consent Nullable(String),
+      context JSON,
+      data JSON
+  ) ENGINE = MergeTree
+  ORDER BY (timestamp_millis);
+  ```
+
+</details>
+
+<details>
+  <summary>If no JSON support at all</summary>
+
+  ```sql
+  CREATE TABLE edgee (
+      uuid UUID,
+      event_type String,
+      timestamp UInt64,
+      timestamp_millis UInt64,
+      timestamp_micros UInt64,
+      consent Nullable(String),
+      context String,
+      data String
+  ) ENGINE = MergeTree
+  ORDER BY (timestamp_millis);
+  ```
+
+</details>
+
 
 ### Event Mapping
 The component maps Edgee events to ClickHouse records as follows.
@@ -76,8 +137,14 @@ id = "clickhouse"
 file = "/var/edgee/components/clickhouse.wasm"
 settings.endpoint = "https://UNIQUE_ID.clickhouse.cloud:8443"
 settings.table = "edgee"
-settings.username = "default"
 settings.password = "*******"
+```
+
+Optional fields:
+
+```toml
+settings.database = "default" # optional
+settings.username = "default" # optional
 ```
 
 
