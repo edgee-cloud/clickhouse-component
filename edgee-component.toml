@@ -1,0 +1,52 @@
+manifest-version = 1
+
+[component]
+name = "ClickHouse"
+version = "1.0.0"
+
+category = "data-collection"
+subcategory = "warehouse"
+language = "Rust"
+wit-version = "1.0.0"
+documentation = "https://www.edgee.cloud/docs/components/data-collection/clickhouse"
+repository = "https://github.com/edgee-cloud/clickhouse-component"
+icon-path = "clickhouse-icon.png"
+description = '''
+This component enables seamless integration between [Edgee](https://www.edgee.cloud)
+and [ClickHouse](https://clickhouse.com),
+allowing you to collect and forward analytics events to your ClickHouse tables. 
+'''
+
+
+[component.build]
+command = "cargo build --target wasm32-wasip2 --release --target-dir ./target && mv ./target/wasm32-wasip2/release/clickhouse_component.wasm ./clickhouse.wasm"
+output_path = "clickhouse.wasm"
+
+[component.settings.endpoint]
+title = "Endpoint"
+type = "string"
+required = true
+description = "Your ClickHouse endpoint, including protocol, hostname, and port."
+
+[component.settings.database]
+title = "Database"
+type = "string"
+description = "Your ClickHouse database name ('default' is used if not provided)."
+
+[component.settings.table]
+title = "Table"
+type = "string"
+required = true
+description = "Your ClickHouse table name."
+
+[component.settings.username]
+title = "Username"
+type = "string"
+description = "Your ClickHouse username ('default' is used if not provided)."
+
+[component.settings.password]
+title = "Password"
+type = "string"
+required = true
+secret = true
+description = "Your ClickHouse password."
