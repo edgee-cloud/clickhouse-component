@@ -117,7 +117,7 @@ mod tests {
     use super::*;
 
     use crate::exports::edgee::components::data_collection::{
-        Campaign, Client, Context, Data, EventType, PageData, Session, UserData,
+        Campaign, Client, Context, Data, EventType, PageData, Session, UserData, TrackData
     };
     use exports::edgee::components::data_collection::Consent;
     use pretty_assertions::assert_eq;
@@ -199,6 +199,18 @@ mod tests {
         }
     }
 
+    fn sample_track_data(event_name: String) -> TrackData {
+        return TrackData {
+            name: event_name,
+            products: vec![],
+            properties: vec![
+                ("prop1".to_string(), "value1".to_string()),
+                ("prop2".to_string(), "10".to_string()),
+                ("currency".to_string(), "USD".to_string()),
+            ],
+        };
+    }
+
     fn sample_page_event(
         consent: Option<Consent>,
         edgee_id: String,
@@ -273,6 +285,65 @@ mod tests {
             ("password".to_string(), "12345".to_string()),
         ];
         let result = Component::page(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Post);
+        assert_eq!(edgee_request.body.is_empty(), false);
+        assert_eq!(edgee_request.url.contains("clickhouse.cloud"), true); // hostname
+        assert_eq!(edgee_request.url.contains("test.edgee"), true); // database.table
+        assert_eq!(edgee_request.url.contains("?query="), true); // query param
+    }
+
+    #[test]
+    fn track_works_fine() {
+        let event = sample_track_event(
+            "test_event".to_string(),
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![
+            (
+                "endpoint".to_string(),
+                "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string(),
+            ),
+            ("database".to_string(), "test".to_string()),
+            ("table".to_string(), "edgee".to_string()),
+            ("username".to_string(), "user".to_string()),
+            ("password".to_string(), "12345".to_string()),
+        ];
+        let result = Component::track(event, settings);
+
+        assert_eq!(result.is_err(), false);
+        let edgee_request = result.unwrap();
+        assert_eq!(edgee_request.method, HttpMethod::Post);
+        assert_eq!(edgee_request.body.is_empty(), false);
+        assert_eq!(edgee_request.url.contains("clickhouse.cloud"), true); // hostname
+        assert_eq!(edgee_request.url.contains("test.edgee"), true); // database.table
+        assert_eq!(edgee_request.url.contains("?query="), true); // query param
+    }
+
+    #[test]
+    fn user_works_fine() {
+        let event = sample_user_event(
+            Some(Consent::Granted),
+            "abc".to_string(),
+            "fr".to_string(),
+            true,
+        );
+        let settings = vec![
+            (
+                "endpoint".to_string(),
+                "https://XYZ.eu-west-1.aws.clickhouse.cloud:8443".to_string(),
+            ),
+            ("database".to_string(), "test".to_string()),
+            ("table".to_string(), "edgee".to_string()),
+            ("username".to_string(), "user".to_string()),
+            ("password".to_string(), "12345".to_string()),
+        ];
+        let result = Component::user(event, settings);
 
         assert_eq!(result.is_err(), false);
         let edgee_request = result.unwrap();
