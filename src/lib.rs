@@ -117,7 +117,7 @@ mod tests {
     use super::*;
 
     use crate::exports::edgee::components::data_collection::{
-        Campaign, Client, Context, Data, EventType, PageData, Session, UserData, TrackData
+        Campaign, Client, Context, Data, EventType, PageData, Session, TrackData, UserData,
     };
     use exports::edgee::components::data_collection::Consent;
     use pretty_assertions::assert_eq;
@@ -398,7 +398,7 @@ mod tests {
 
         assert_eq!(result.is_err(), false);
         let edgee_request = result.unwrap();
-        
+
         let auth_header = edgee_request
             .headers
             .iter()
@@ -431,7 +431,7 @@ mod tests {
 
         assert_eq!(result.is_err(), false);
         let edgee_request = result.unwrap();
-        
+
         let auth_header = edgee_request
             .headers
             .iter()
@@ -443,5 +443,4 @@ mod tests {
         let expected_auth = BASE64_STANDARD.encode(format!("{}:{}", "default", "12345"));
         assert_eq!(auth_header.unwrap(), &format!("Basic {}", expected_auth));
     }
-
 }
