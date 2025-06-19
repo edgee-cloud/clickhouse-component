@@ -90,8 +90,8 @@ First of all, create a new table with the following schema:
       timestamp_millis UInt64,
       timestamp_micros UInt64,
       consent Nullable(String),
-      context JSON,
-      data JSON
+      context Object('json'),
+      data Object('json')
   ) ENGINE = MergeTree
   ORDER BY (timestamp_millis);
   ```
@@ -116,6 +116,21 @@ First of all, create a new table with the following schema:
   ```
 
 </details>
+
+### JSON fields
+
+New records are ingested individually using `JSONEachRow`.
+
+If your ClickHouse version supports `JSON` or `Object('json')` types, both `context` and `data` will contain additional JSON sub-fields, whose schema is automatically inferred at runtime.
+
+
+Please note that:
+
+- The sub-fields under `context` are always the same, so you can use queries such as `SELECT context.client.ip AS ip FROM edgee`
+- The sub-fields under `data` depend on the value of `event_type`, so you can use queries such as:
+  - `SELECT data.Track.name FROM edgee WHERE event_type = 'Track'`
+  - `SELECT data.Page.path FROM edgee WHERE event_type = 'Page'`
+
 
 
 ### Event Mapping
