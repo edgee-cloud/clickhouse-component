@@ -19,7 +19,7 @@ allowing you to collect and forward analytics events to your ClickHouse tables.
 
 
 [component.build]
-command = "cargo build --target wasm32-wasip2 --release --target-dir ./target && mv ./target/wasm32-wasip2/release/clickhouse_component.wasm ./clickhouse.wasm"
+command = "cargo build --target wasm32-wasip2 --release --target-dir ./target && rm -f ./clickhouse.wasm && mv ./target/wasm32-wasip2/release/clickhouse_component.wasm ./clickhouse.wasm"
 output_path = "clickhouse.wasm"
 
 [component.settings.endpoint]
