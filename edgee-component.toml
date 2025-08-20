@@ -12,9 +12,46 @@ documentation = "https://www.edgee.cloud/docs/components/data-collection/clickho
 repository = "https://github.com/edgee-cloud/clickhouse-component"
 icon-path = "clickhouse-icon.png"
 description = '''
-This component enables seamless integration between [Edgee](https://www.edgee.cloud)
-and [ClickHouse](https://clickhouse.com),
-allowing you to collect and forward analytics events to your ClickHouse tables. 
+# ClickHouse Component
+
+[https://www.edgee.cloud/edgee/clickhouse](https://www.edgee.cloud/edgee/clickhouse)
+
+## Overview
+
+The **ClickHouse** component by Edgee enables fast, edge-native analytics by streaming events directly to your ClickHouse data warehouse.
+ClickHouse is a high-performance, columnar OLAP database engineered for rapid queries, large-scale data aggregation, and real-time analytics.
+Edgee handles all the streaming logic at the edge—no SDK needed, and no client-side performance hit.
+
+---
+
+## Key Features & Benefits
+
+### Features
+
+- **Edge Event Streaming**: Collects analytics events at the edge and forwards them to ClickHouse.
+- **Broad Compatibility**: Works with all ClickHouse endpoints, including ClickHouse Cloud and Aiven.
+- **High-Throughput Support**: Supports high-throughput data ingestion for large-scale analytics.
+- **Seamless Edgee Integration**: Integrates seamlessly with other Edgee components for comprehensive data workflows.
+
+### Benefits
+
+- **Scalability**: Leverage ClickHouse's scalable infrastructure to handle large volumes of data.
+- **Performance**: Achieve low-latency data processing by collecting events at the edge.
+- **Integration**: Easily integrate with other Edgee components and analytics tools.
+
+---
+
+## Use Cases
+
+- **Real-Time Analytics**: Collect and analyze data in real-time to make informed decisions.
+- **Data Warehousing**: Store and manage large datasets efficiently in ClickHouse.
+- **Business Intelligence**: Integrate with BI tools to visualize and interpret data insights.
+
+---
+
+Additional resources:
+- [ClickHouse](https://clickhouse.com/)
+- [Aiven for ClickHouse](https://aiven.io/clickhouse)
 '''
 
 
