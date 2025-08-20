@@ -12,10 +12,6 @@ documentation = "https://www.edgee.cloud/docs/components/data-collection/clickho
 repository = "https://github.com/edgee-cloud/clickhouse-component"
 icon-path = "clickhouse-icon.png"
 description = '''
-# ClickHouse Component
-
-[https://www.edgee.cloud/edgee/clickhouse](https://www.edgee.cloud/edgee/clickhouse)
-
 ## Overview
 
 The **ClickHouse** component by Edgee enables fast, edge-native analytics by streaming events directly to your ClickHouse data warehouse.
